@@ -1,4 +1,4 @@
-PHOTOSALE OFFLINE — PAKET ANDROID
+PHOTOSALE OFFLINE v3 — SEHINGGA 10 JURUFOTO
 =================================
 
 Fail:
@@ -7,7 +7,7 @@ Fail:
 - sw.js: cache offline/service worker
 - icon-192.png dan icon-512.png: ikon aplikasi
 
-PENTING: Pakej ZIP ini belum dipasang pada telefon dan belum diterbitkan di alamat HTTPS. PWA offline memerlukan satu persediaan awal melalui HTTPS.
+PENTING: Ini pakej kemas kini. Muat naik fail dalam ZIP ini ke repositori GitHub Pages sedia ada, gantikan fail lama. URL laman kekal sama. Jangan padam data pelayar; aplikasi menggunakan kunci storan tempatan yang sama dan tetapan dua jurufoto lama akan dipindahkan secara automatik.
 
 Kaedah penggunaan:
 1. Simpan ZIP ini dan ekstrak semua fail.
@@ -17,6 +17,12 @@ Kaedah penggunaan:
 5. Buka aplikasi sekurang-kurangnya sekali ketika online. Selepas fail aplikasi dicache, aplikasi boleh dibuka offline.
 6. Import laporan XLSX/CSV. Semua pengiraan dilakukan dalam pelayar; data jualan disimpan setempat pada telefon.
 7. Selepas setiap event, tekan “Sandaran JSON” dan simpan fail sandaran ke lokasi yang selamat.
+
+Jurufoto:
+- Menyokong sehingga 10 slot jurufoto.
+- Tetapkan nama, penanda nama fail dan peratus agihan setiap jurufoto.
+- Tetapan lama dua jurufoto (MIKA dan _MG_) dibaca dan ditukar secara automatik.
+- Jika beberapa penanda sepadan, penanda paling panjang diutamakan.
 
 Formula:
 - Untuk setiap Order ID, Gross Profit (order), Photohawk Fee (order), Transaction Fee (order) dan Shipping Fee (order) diambil sekali.

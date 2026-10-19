@@ -38,16 +38,10 @@
 </section>
 <section class="panel">
 <h2>Aturan jurufoto & agihan</h2>
-<div class="row">
-<div class="field"><label>Nama jurufoto A</label><input id="nameA" value="MIKA"></div>
-<div class="field"><label>Penanda nama fail A</label><input id="markA" value="MIKA"></div>
-<div class="field"><label>Nama jurufoto B</label><input id="nameB" value="Jurufoto _MG_"></div>
-<div class="field"><label>Penanda nama fail B</label><input id="markB" value="_MG_"></div>
-<div class="field"><label>Agihan MIKA (%)</label><input id="shareA" type="number" min="0" max="100" step="0.5" value="100"></div>
-<div class="field"><label>Agihan jurufoto B (%)</label><input id="shareB" type="number" min="0" max="100" step="0.5" value="100"></div>
-<div class="field"><label>Status dikira</label><select id="status"><option value="Shipped">Shipped sahaja</option><option value="all">Semua status</option></select></div>
-</div>
-<p class="small">Penanda nama fail ditukar mengikut format sebenar anda. Peratus dikenakan pada hasil bersih yang diagihkan kepada setiap jurufoto. Nilai 100% bermaksud menerima keseluruhan bahagian bersih yang dikaitkan dengan gambar jurufoto tersebut.</p>
+<p class="small">Tetapkan sehingga 10 jurufoto. Masukkan nama, kod/penanda yang mesti muncul dalam nama fail, dan peratus bayaran daripada hasil bersih gambar yang dikenal pasti miliknya. Dua tetapan asal (MIKA dan _MG_) dikekalkan secara automatik.</p>
+<div class="tablewrap"><table><thead><tr><th>#</th><th>Nama jurufoto</th><th>Penanda nama fail</th><th class="num">Agihan (%)</th></tr></thead><tbody id="photographerRules"></tbody></table></div>
+<div class="row" style="margin-top:12px"><div class="field" style="max-width:260px"><label>Status dikira</label><select id="status"><option value="Shipped">Shipped sahaja</option><option value="all">Semua status</option></select></div><button id="saveRules" class="soft">Simpan aturan jurufoto</button></div>
+<p class="small">Jika penanda tidak dikenal pasti, baris itu akan ditandakan “Tidak dikenal” dan tidak dimasukkan ke bayaran. Jika dua penanda sepadan, penanda yang lebih panjang akan digunakan dahulu. Peratus dikenakan kepada bahagian hasil bersih gambar milik jurufoto itu.</p>
 </section>
 <section class="cards" id="metrics">
 <div class="metric"><div class="k">Gambar dikira</div><div class="v">0</div><div class="s">Baris gambar</div></div>
@@ -91,11 +85,13 @@ const money=n=>'RM '+(Number(n)||0).toLocaleString('ms-MY',{minimumFractionDigit
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function readStore(){try{let x=JSON.parse(localStorage.getItem(STORE)||'{}');events=x.events||{};payments=x.payments||{};if(x.currentId)currentId=x.currentId;let e=events[currentId];if(e){rows=e.rows||[];$('eventName').value=e.name||'';$('eventDate').value=e.date||'';loadSettings(e.settings||{})}}catch(e){}refreshSaved();recalc()}
 function writeStore(){events[currentId]={name:$('eventName').value,date:$('eventDate').value,rows,settings:getSettings()};try{localStorage.setItem(STORE,JSON.stringify({events,payments,currentId}));$('importMsg').textContent='Disimpan pada peranti ini.'}catch(e){alert('Storan penuh. Eksport sandaran JSON dan buang rekod lama jika perlu.')};refreshSaved();renderPayments()}
-function getSettings(){return {nameA:$('nameA').value,markA:$('markA').value,nameB:$('nameB').value,markB:$('markB').value,shareA:$('shareA').value,shareB:$('shareB').value,status:$('status').value}}
-function loadSettings(s){['nameA','markA','nameB','markB','shareA','shareB','status'].forEach(k=>{if(s[k]!==undefined)$(k).value=s[k]})}
-function shareFor(name){let pct= name===($('nameA').value||'Jurufoto A') ? $('shareA').value : name===($('nameB').value||'Jurufoto B') ? $('shareB').value : 0;return Math.max(0,Math.min(100,Number(pct)||0))/100}
+function defaultPhotographers(){return Array.from({length:10},(_,i)=>({name:i===0?'MIKA':i===1?'Jurufoto _MG_':'',marker:i===0?'MIKA':i===1?'_MG_':'',share:'100'}))}
+function renderPhotographerRules(){let ps=window.photographers||defaultPhotographers();$('photographerRules').innerHTML=ps.map((p,i)=>`<tr><td>${i+1}</td><td><input aria-label="Nama jurufoto ${i+1}" data-pfield="name" data-pindex="${i}" value="${esc(p.name||'')}" placeholder="Nama jurufoto ${i+1}" style="min-width:150px;width:100%"></td><td><input aria-label="Penanda fail ${i+1}" data-pfield="marker" data-pindex="${i}" value="${esc(p.marker||'')}" placeholder="Contoh: HAKIM" style="min-width:130px;width:100%"></td><td class="num"><input aria-label="Peratus jurufoto ${i+1}" data-pfield="share" data-pindex="${i}" type="number" min="0" max="100" step="0.5" value="${esc(p.share??'100')}" style="width:100px;text-align:right"></td></tr>`).join('')}
+function getSettings(){return {photographers:(window.photographers||defaultPhotographers()).map(p=>({...p})),status:$('status').value}}
+function loadSettings(s){let ps;if(Array.isArray(s.photographers)){ps=s.photographers.slice(0,10)}else{ps=[{name:s.nameA??'MIKA',marker:s.markA??'MIKA',share:s.shareA??'100'},{name:s.nameB??'Jurufoto _MG_',marker:s.markB??'_MG_',share:s.shareB??'100'}]}window.photographers=defaultPhotographers().map((p,i)=>({...p,...(ps[i]||{})}));if(s.status!==undefined)$('status').value=s.status;renderPhotographerRules()}
+function shareFor(name){let p=(window.photographers||[]).find(p=>(p.name||'').trim()===name);let pct=p?p.share:0;return Math.max(0,Math.min(100,Number(pct)||0))/100}
 function refreshSaved(){let old=currentId;$('savedEvents').innerHTML='<option value="">Pilih event tersimpan…</option>'+Object.entries(events).map(([id,e])=>`<option value="${esc(id)}">${esc(e.name||'Event tanpa nama')} — ${esc(e.date||'tiada tarikh')}</option>`).join('');$('savedEvents').value=events[old]?old:''}
-function classify(r){let a=$('markA').value.trim().toLowerCase(),b=$('markB').value.trim().toLowerCase(),f=r.filename.toLowerCase();if(a&&f.includes(a))return $('nameA').value||'Jurufoto A';if(b&&f.includes(b))return $('nameB').value||'Jurufoto B';return 'Tidak dikenal'}
+function classify(r){let f=r.filename.toLowerCase();let ps=(window.photographers||[]).map((p,i)=>({...p,i,marker:String(p.marker||'').trim()})).filter(p=>p.marker&&String(p.name||'').trim()).sort((a,b)=>b.marker.length-a.marker.length||a.i-b.i);let hit=ps.find(p=>f.includes(p.marker.toLowerCase()));return hit?String(hit.name).trim():'Tidak dikenal'}
 function filteredRows(){return rows.filter(r=>$('status').value==='all'||r.status.toLowerCase()===$('status').value.toLowerCase())}
 function recalc(){
  let filtered=filteredRows(), orders={};
@@ -136,7 +132,7 @@ let doc=new DOMParser().parseFromString(xml(sheet),'text/xml');let arr=[];for(le
 if(!arr.length)return[];let max=Math.max(...arr.map(r=>Math.max(-1,...Object.keys(r).map(Number))));let heads=Array.from({length:max+1},(_,i)=>arr[0][i]||'');return arr.slice(1).map(r=>Object.fromEntries(heads.map((h,i)=>[h,r[i]??''])))} )}
 async function unzipXlsx(buf){let u8=new Uint8Array(buf),dv=new DataView(buf),eocd=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break}}if(eocd<0)throw Error('Fail bukan XLSX yang sah.');let count=dv.getUint16(eocd+10,true),off=dv.getUint32(eocd+16,true),files={};for(let i=0;i<count;i++){if(dv.getUint32(off,true)!==0x02014b50)break;let method=dv.getUint16(off+10,true),cs=dv.getUint32(off+20,true),nl=dv.getUint16(off+28,true),el=dv.getUint16(off+30,true),cl=dv.getUint16(off+32,true),lo=dv.getUint32(off+42,true),name=new TextDecoder().decode(u8.slice(off+46,off+46+nl));let lnl=dv.getUint16(lo+26,true),lel=dv.getUint16(lo+28,true),start=lo+30+lnl+lel,dat=u8.slice(start,start+cs);if(!name.endsWith('/')){if(method===0)files[name]=dat;else if(method===8){if(!('DecompressionStream'in window))throw Error('Pelayar ini tidak menyokong pembacaan XLSX offline. Gunakan CSV.');let ds=new DecompressionStream('deflate-raw'),stream=new Blob([dat]).stream().pipeThrough(ds);files[name]=new Uint8Array(await new Response(stream).arrayBuffer())} }off+=46+nl+el+cl}return files}
 $('importBtn').addEventListener('click',async()=>{let f=$('file').files[0];if(!f){alert('Pilih fail Excel atau CSV dahulu.');return}try{$('importMsg').textContent='Sedang membaca fail…';let data;if(f.name.toLowerCase().endsWith('.csv'))data=parseCsv(await f.text());else if(f.name.toLowerCase().endsWith('.xlsx'))data=await parseXlsx(await f.arrayBuffer());else throw Error('Format .xls lama tidak disokong. Simpan sebagai .xlsx atau CSV dahulu.');rows=data.map(normalize).filter(r=>r.filename);if(!rows.length)throw Error('Tiada baris gambar ditemui. Semak tajuk lajur seperti Item Name dan Item value.');recalc();writeStore();$('importMsg').textContent=`Berjaya import ${rows.length} baris gambar daripada ${f.name}.`}catch(e){$('importMsg').textContent='Gagal import: '+e.message;alert('Gagal import: '+e.message)}});
-['nameA','markA','nameB','markB','shareA','shareB','status'].forEach(id=>$(id).addEventListener('change',()=>{recalc();writeStore()}));$('filter').addEventListener('change',renderDetails);
+$('photographerRules').addEventListener('change',e=>{let t=e.target;if(!t.dataset.pfield)return;let i=Number(t.dataset.pindex),k=t.dataset.pfield;if(window.photographers[i])window.photographers[i][k]=t.value;recalc();writeStore()});$('saveRules').addEventListener('click',()=>{recalc();writeStore();alert('Aturan sehingga 10 jurufoto telah disimpan pada peranti ini.')});$('status').addEventListener('change',()=>{recalc();writeStore()});$('filter').addEventListener('change',renderDetails);
 document.querySelectorAll('[data-sort]').forEach(b=>b.addEventListener('click',()=>{sortBy=b.dataset.sort;document.querySelectorAll('[data-sort]').forEach(x=>x.classList.toggle('active',x===b));renderDetails()}));
 $('saveEvent').addEventListener('click',()=>{writeStore();alert('Event disimpan pada telefon ini.')});
 $('newEvent').addEventListener('click',()=>{if(rows.length&&!confirm('Mulakan event baharu? Pastikan event semasa sudah disimpan.'))return;writeStore();currentId='event_'+Date.now();rows=[];$('eventName').value='';$('eventDate').value=new Date().toISOString().slice(0,10);recalc();writeStore()});
@@ -150,6 +146,6 @@ function slug(s){return String(s||'event').toLowerCase().replace(/[^a-z0-9]+/g,'
 function online(){ $('online').textContent=navigator.onLine?'● Online (data setempat)':'● Offline';$('online').style.color=navigator.onLine?'#d4ffe7':'#ffe8aa'}
 window.addEventListener('online',online);window.addEventListener('offline',online);
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-$('eventDate').value=new Date().toISOString().slice(0,10);readStore();online();
+$('eventDate').value=new Date().toISOString().slice(0,10);window.photographers=defaultPhotographers();renderPhotographerRules();readStore();online();
 </script>
 </body></html>
