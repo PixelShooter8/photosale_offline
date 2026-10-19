@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#15264b">
+<meta name="description" content="PhotoSale — pengiraan dan agihan jualan jurufoto secara offline">
+<link rel="manifest" href="manifest.webmanifest">
+<title>PhotoSale Offline</title>
+<style>
+:root{--navy:#15264b;--blue:#3557d5;--teal:#087f8c;--ink:#172033;--muted:#667085;--line:#e3e8f0;--bg:#f3f6fb;--white:#fff;--gold:#d7a94b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Arial;color:var(--ink)}header{background:linear-gradient(120deg,#111b35,#263f78);color:white;padding:22px 16px 20px}header .inner{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:25px;letter-spacing:-.5px;margin:0}header p{color:#dce5ff;margin:4px 0 0;font-size:12px}.status{font-size:11px;border:1px solid #6683bc;border-radius:99px;padding:5px 9px;white-space:nowrap}.wrap{max-width:1120px;margin:18px auto;padding:0 14px 40px}.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:16px;margin-bottom:14px;box-shadow:0 3px 12px #14213d06}.panel h2{font-size:16px;margin:0 0 12px}.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;min-width:145px;flex:1}label{font-size:11px;color:#475467;font-weight:750}input,select,button{font:inherit;border:1px solid #cfd7e4;border-radius:9px;padding:10px 11px;background:white;color:var(--ink);min-width:0}input[type=file]{padding:8px;width:100%}button{font-weight:750;cursor:pointer}.primary{background:var(--blue);border-color:var(--blue);color:white}.soft{background:#f5f7ff;color:#253caa;border-color:#dce3ff}.danger{color:#a12d2d;background:#fff6f6;border-color:#f1d1d1}.small{font-size:11px;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.metric{background:white;border:1px solid var(--line);border-radius:13px;padding:13px}.metric .k{font-size:11px;color:var(--muted);font-weight:750}.metric .v{font-size:21px;font-weight:850;margin-top:5px;overflow-wrap:anywhere}.metric .s{font-size:10px;color:var(--muted);margin-top:3px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}.tab{border-radius:99px;padding:7px 12px;font-size:12px}.tab.active{background:#e9edff;border-color:#b7c3ff;color:#233fb5}.tablewrap{overflow:auto;max-height:460px;border:1px solid var(--line);border-radius:9px}table{border-collapse:collapse;width:100%;white-space:nowrap;font-size:12px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}th{position:sticky;top:0;background:#f6f8fc;color:#475467;z-index:1}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}.tag{display:inline-block;padding:3px 7px;border-radius:99px;background:#e8f7f1;color:#176b4b;font-size:10px;font-weight:800}.tag.pending{background:#fff4d9;color:#825a00}.note{border-left:3px solid var(--gold);background:#fff9e9;padding:10px 12px;border-radius:5px;color:#674d16;font-size:12px}.hidden{display:none!important}.footer{text-align:center;color:#7b8495;font-size:11px;padding:10px}.wide{width:100%}.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:680px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.metric .v{font-size:18px}.split{grid-template-columns:1fr}header .inner{align-items:flex-start}h1{font-size:22px}.panel{padding:13px}.wrap{padding:0 10px 30px}.field{min-width:calc(50% - 10px)}.fullmobile{width:100%}}
+</style>
+</head>
+<body>
+<header><div class="inner"><div><h1>PhotoSale</h1><p>Sistem agihan jualan jurufoto · Offline-first</p></div><span class="status" id="online">● Semak status</span></div></header>
+<main class="wrap">
+<section class="panel">
+<h2>Event & rekod</h2>
+<div class="row">
+<div class="field"><label>Nama event</label><input id="eventName" placeholder="Contoh: Sarawak Energy Marathon 2026"></div>
+<div class="field"><label>Tarikh event</label><input id="eventDate" type="date"></div>
+<div class="field"><label>Rekod tersimpan</label><select id="savedEvents"><option value="">Event semasa</option></select></div>
+<button id="newEvent" class="soft">Event baharu</button><button id="saveEvent" class="primary">Simpan event</button>
+</div><p class="small">Rekod disimpan pada peranti ini sahaja. Eksport sandaran dengan kerap untuk mengelakkan kehilangan data.</p>
+</section>
+<section class="panel">
+<h2>Import laporan jualan</h2>
+<div class="row">
+<div class="field" style="flex:2"><label>Pilih fail Excel (.xlsx) atau CSV</label><input id="file" type="file" accept=".xlsx,.xls,.csv,text/csv"></div>
+<button id="importBtn" class="primary">Import & kira</button>
+<button id="exportCsv" class="soft">Eksport CSV</button>
+<button id="backup" class="soft">Sandaran JSON</button>
+<label class="soft" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer">Pulih sandaran<input id="restore" type="file" accept=".json,application/json" style="display:none"></label>
+</div>
+<p class="small">Fail diproses pada telefon. Tiada data jualan dihantar ke pelayan. Untuk Excel, aplikasi membaca fail .xlsx secara setempat; fail lama .xls boleh disimpan semula sebagai .xlsx atau CSV.</p>
+<div id="importMsg" class="small" aria-live="polite"></div>
+</section>
+<section class="panel">
+<h2>Aturan jurufoto & agihan</h2>
+<div class="row">
+<div class="field"><label>Nama jurufoto A</label><input id="nameA" value="MIKA"></div>
+<div class="field"><label>Penanda nama fail A</label><input id="markA" value="MIKA"></div>
+<div class="field"><label>Nama jurufoto B</label><input id="nameB" value="Jurufoto _MG_"></div>
+<div class="field"><label>Penanda nama fail B</label><input id="markB" value="_MG_"></div>
+<div class="field"><label>Agihan MIKA (%)</label><input id="shareA" type="number" min="0" max="100" step="0.5" value="100"></div>
+<div class="field"><label>Agihan jurufoto B (%)</label><input id="shareB" type="number" min="0" max="100" step="0.5" value="100"></div>
+<div class="field"><label>Status dikira</label><select id="status"><option value="Shipped">Shipped sahaja</option><option value="all">Semua status</option></select></div>
+</div>
+<p class="small">Penanda nama fail ditukar mengikut format sebenar anda. Peratus dikenakan pada hasil bersih yang diagihkan kepada setiap jurufoto. Nilai 100% bermaksud menerima keseluruhan bahagian bersih yang dikaitkan dengan gambar jurufoto tersebut.</p>
+</section>
+<section class="cards" id="metrics">
+<div class="metric"><div class="k">Gambar dikira</div><div class="v">0</div><div class="s">Baris gambar</div></div>
+<div class="metric"><div class="k">Jualan kasar</div><div class="v">RM 0.00</div><div class="s">Order unik, tidak berganda</div></div>
+<div class="metric"><div class="k">Anggaran bayaran jurufoto</div><div class="v">RM 0.00</div><div class="s">Mengikut peratus agihan</div></div>
+<div class="metric"><div class="k">Pesanan unik</div><div class="v">0</div><div class="s">Order ID berbeza</div></div>
+</section>
+<section class="panel">
+<h2>Ringkasan bayaran jurufoto</h2>
+<div class="tablewrap"><table><thead><tr><th>Jurufoto</th><th class="num">Gambar</th><th class="num">Purata kasar diagih/gambar</th><th class="num">Kasar diagih</th><th class="num">Yuran platform</th><th class="num">Yuran transaksi + penghantaran</th><th class="num">Bersih diagih</th><th class="num">Peratus</th><th class="num">Anggaran bayaran</th><th>Status</th></tr></thead><tbody id="summary"><tr><td colspan="10">Import laporan untuk bermula.</td></tr></tbody></table></div>
+<p class="small">“Anggaran bayaran” = bahagian hasil bersih pesanan yang dikaitkan dengan gambar jurufoto × peratus agihan. Status pembayaran perlu disahkan dan direkodkan secara manual.</p>
+</section>
+<section class="panel">
+<div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Butiran gambar</h2><div class="field" style="max-width:240px"><label>Tapis jurufoto</label><select id="filter"><option value="all">Semua</option></select></div></div>
+<div class="tabs" style="margin-top:11px"><button class="tab active" data-sort="date">Tarikh</button><button class="tab" data-sort="photographer">Jurufoto</button><button class="tab" data-sort="price">Harga</button><button class="tab" data-sort="filename">Nama fail</button></div>
+<div class="tablewrap"><table><thead><tr><th>Tarikh</th><th>Jurufoto</th><th>Nama fail</th><th>Order ID</th><th>Status</th><th class="num">Kasar diagih</th><th class="num">Yuran platform</th><th class="num">Yuran transaksi + penghantaran</th><th class="num">Bersih diagih</th><th class="num">Anggaran bayaran</th></tr></thead><tbody id="details"><tr><td colspan="10">Tiada data.</td></tr></tbody></table></div>
+</section>
+<section class="panel">
+<h2>Semakan & bayaran</h2>
+<div class="row">
+<div class="field"><label>Jurufoto</label><select id="payPhotographer"></select></div>
+<div class="field"><label>Status pembayaran</label><select id="payStatus"><option>Belum Dibayar</option><option>Disemak</option><option>Dibayar</option></select></div>
+<div class="field"><label>Tarikh pembayaran</label><input id="payDate" type="date"></div>
+<div class="field"><label>Rujukan transaksi / nota</label><input id="payRef" placeholder="Contoh: DuitNow / rujukan bank"></div>
+<button id="savePayment" class="primary">Simpan status</button>
+</div>
+<div id="paymentList" class="small" style="margin-top:10px">Belum ada rekod bayaran.</div>
+</section>
+<section class="panel">
+<h2>Formula & ketelusan</h2>
+<div class="note">Sistem mengira Gross Profit (order), Photohawk Fee, Transaction Fee dan Shipping Fee sekali bagi setiap Order ID. Nilai dan yuran order itu diagihkan sama rata kepada baris gambar dalam order tersebut supaya tidak dikira berganda. Bersih diagih = Gross Profit diagih − yuran PhotoHawk diagih − yuran transaksi diagih − shipping diagih. Anggaran bayaran = Bersih diagih × peratus jurufoto. Baris “Tidak dikenal” dikecualikan daripada bayaran sehingga penanda nama fail dibetulkan. Sahkan formula dengan penyata rasmi PhotoHawk sebelum membuat pembayaran.</div>
+<p class="small">Simpan sandaran JSON selepas setiap event. CSV boleh dibuka dalam Excel; ia tidak mengandungi semua metadata event atau sejarah status pembayaran.</p>
+</section>
+<div class="footer">PhotoSale Offline · Data disimpan setempat pada peranti anda</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let rows=[], sortBy='date', currentId='current', events={}, payments={};
+const STORE='photosale_offline_v1';
+const money=n=>'RM '+(Number(n)||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function readStore(){try{let x=JSON.parse(localStorage.getItem(STORE)||'{}');events=x.events||{};payments=x.payments||{};if(x.currentId)currentId=x.currentId;let e=events[currentId];if(e){rows=e.rows||[];$('eventName').value=e.name||'';$('eventDate').value=e.date||'';loadSettings(e.settings||{})}}catch(e){}refreshSaved();recalc()}
+function writeStore(){events[currentId]={name:$('eventName').value,date:$('eventDate').value,rows,settings:getSettings()};try{localStorage.setItem(STORE,JSON.stringify({events,payments,currentId}));$('importMsg').textContent='Disimpan pada peranti ini.'}catch(e){alert('Storan penuh. Eksport sandaran JSON dan buang rekod lama jika perlu.')};refreshSaved();renderPayments()}
+function getSettings(){return {nameA:$('nameA').value,markA:$('markA').value,nameB:$('nameB').value,markB:$('markB').value,shareA:$('shareA').value,shareB:$('shareB').value,status:$('status').value}}
+function loadSettings(s){['nameA','markA','nameB','markB','shareA','shareB','status'].forEach(k=>{if(s[k]!==undefined)$(k).value=s[k]})}
+function shareFor(name){let pct= name===($('nameA').value||'Jurufoto A') ? $('shareA').value : name===($('nameB').value||'Jurufoto B') ? $('shareB').value : 0;return Math.max(0,Math.min(100,Number(pct)||0))/100}
+function refreshSaved(){let old=currentId;$('savedEvents').innerHTML='<option value="">Pilih event tersimpan…</option>'+Object.entries(events).map(([id,e])=>`<option value="${esc(id)}">${esc(e.name||'Event tanpa nama')} — ${esc(e.date||'tiada tarikh')}</option>`).join('');$('savedEvents').value=events[old]?old:''}
+function classify(r){let a=$('markA').value.trim().toLowerCase(),b=$('markB').value.trim().toLowerCase(),f=r.filename.toLowerCase();if(a&&f.includes(a))return $('nameA').value||'Jurufoto A';if(b&&f.includes(b))return $('nameB').value||'Jurufoto B';return 'Tidak dikenal'}
+function filteredRows(){return rows.filter(r=>$('status').value==='all'||r.status.toLowerCase()===$('status').value.toLowerCase())}
+function recalc(){
+ let filtered=filteredRows(), orders={};
+ filtered.forEach(r=>{let id=r.order||'(tiada ID)';if(!orders[id])orders[id]={gross:r.gross,ph:r.ph,tx:r.tx,ship:r.ship,net:r.net,count:0};orders[id].count++});
+ let detailed=filtered.map(r=>{
+   let o=orders[r.order||'(tiada ID)']||{count:1};
+   let photographer=classify(r);
+   // The order-level gross and fees are split across its image rows to avoid duplicate deductions.
+   let grossShare=(o.gross||0)/(o.count||1);
+   let phShare=(o.ph||0)/(o.count||1);
+   let txShare=(o.tx||0)/(o.count||1);
+   let shipShare=(o.ship||0)/(o.count||1);
+   let netShare=grossShare-phShare-txShare-shipShare;
+   // The payout rate is photographer-specific; unknown filename markers are excluded until reviewed.
+   let rate=shareFor(photographer);
+   return {...r,photographer,grossShare,phShare,txShare,shipShare,netShare,rate,payout:photographer==='Tidak dikenal'?0:netShare*rate};
+ });
+ let gross=Object.values(orders).reduce((s,o)=>s+(o.gross||0),0);
+ let totalFees=Object.values(orders).reduce((s,o)=>s+(o.ph||0)+(o.tx||0)+(o.ship||0),0);
+ let totalNet=gross-totalFees;
+ let payout=detailed.reduce((s,r)=>s+r.payout,0);
+ $('metrics').innerHTML=[['Gambar dikira',filtered.length,'Baris gambar'],['Jualan kasar',money(gross),'Order unik, tidak berganda'],['Bersih selepas yuran',money(totalNet),'Kasar tolak yuran order unik'],['Jumlah agihan',money(payout),'Mengikut peratus jurufoto']].map(x=>`<div class="metric"><div class="k">${x[0]}</div><div class="v">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+ let sums={};detailed.forEach(r=>{let s=sums[r.photographer]||(sums[r.photographer]={n:0,gross:0,ph:0,tx:0,ship:0,net:0,payout:0,rate:r.rate});s.n++;s.gross+=r.grossShare;s.ph+=r.phShare;s.tx+=r.txShare;s.ship+=r.shipShare;s.net+=r.netShare;s.payout+=r.payout;s.rate=r.rate});
+ $('summary').innerHTML=Object.entries(sums).map(([n,s])=>`<tr><td><b>${esc(n)}</b></td><td class="num">${s.n}</td><td class="num">${money(s.n?(s.gross/s.n):0)}</td><td class="num">${money(s.gross)}</td><td class="num">${money(s.ph)}</td><td class="num">${money(s.tx+s.ship)}</td><td class="num">${money(s.net)}</td><td class="num">${(s.rate*100).toLocaleString('ms-MY')}%</td><td class="num"><b>${money(s.payout)}</b></td><td><span class="tag ${n==='Tidak dikenal'?'pending':''}">${esc((payments[currentId]||{})[n]?.status||'Belum Dibayar')}</span></td></tr>`).join('')||'<tr><td colspan="10">Tiada data.</td></tr>';
+ window.detail=detailed;
+ let names=[...new Set(detailed.map(r=>r.photographer))],old=$('filter').value;
+ $('filter').innerHTML='<option value="all">Semua</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');if(names.includes(old))$('filter').value=old;
+ $('payPhotographer').innerHTML=names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+ renderDetails();renderPayments();
+}
+function renderDetails(){let d=(window.detail||[]).filter(r=>$('filter').value==='all'||r.photographer===$('filter').value);d.sort((a,b)=>sortBy==='price'?b.item-a.item:sortBy==='photographer'?a.photographer.localeCompare(b.photographer):sortBy==='filename'?a.filename.localeCompare(b.filename):b.date.localeCompare(a.date));$('details').innerHTML=d.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.photographer)}</td><td>${esc(r.filename)}</td><td>${esc(r.order)}</td><td>${esc(r.status)}</td><td class="num">${money(r.grossShare)}</td><td class="num">${money(r.phShare)}</td><td class="num">${money(r.txShare+r.shipShare)}</td><td class="num">${money(r.netShare)}</td><td class="num">${money(r.payout)}</td></tr>`).join('')||'<tr><td colspan="10">Tiada data.</td></tr>'}
+function renderPayments(){let p=payments[currentId]||{};let names=Object.keys(p);$('paymentList').innerHTML=names.length?names.map(n=>`<div style="padding:5px 0;border-bottom:1px solid #eee"><b>${esc(n)}</b> — ${esc(p[n].status||'Belum Dibayar')} ${p[n].date?'· '+esc(p[n].date):''} ${p[n].ref?'· '+esc(p[n].ref):''}</div>`).join(''):'Belum ada rekod bayaran.'}
+function parseCsv(text){let lines=[],row=[],v='',q=false;for(let i=0;i<text.length;i++){let c=text[i];if(c==='"'&&q&&text[i+1]==='"'){v+='"';i++}else if(c==='"')q=!q;else if((c===','||c===';')&&!q){row.push(v);v=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(v);if(row.some(x=>x!==''))lines.push(row);row=[];v=''}else v+=c}row.push(v);if(row.some(x=>x!==''))lines.push(row);if(!lines.length)return[];let heads=lines.shift().map(x=>x.trim().replace(/^\uFEFF/,''));return lines.map(line=>Object.fromEntries(heads.map((h,i)=>[h,line[i]??''])))}
+function normalize(r){let get=(...keys)=>{for(let k of keys)if(r[k]!==undefined&&r[k]!==null&&r[k]!=='')return r[k];return ''};let n=x=>Number(String(x??0).replace(/[RM,\s]/g,''))||0;return {date:String(get('Date','date')),status:String(get('Status','status')),order:String(get('Order ID','Order ID ','order_id')),filename:String(get('Item Name','Item name','filename')).trim(),item:n(get('Item value','Item Value','item_value')),gross:n(get('Gross Profit (order)','Gross Profit','gross')),ph:n(get('Photohawk Fee (order)','Photohawk Fee','ph_fee')),ship:n(get('Shipping Fee (order)','Shipping Fee','shipping')),tx:n(get('Transaction Fee (order)','Transaction Fee','tx_fee')),net:n(get('Net Profit (order)','Net Profit','net'))}}
+function parseXlsx(buf){return unzipXlsx(buf).then(files=>{let dec=new TextDecoder(),xml=path=>dec.decode(files[path]);let shared=[];if(files['xl/sharedStrings.xml']){let doc=new DOMParser().parseFromString(xml('xl/sharedStrings.xml'),'text/xml');shared=[...doc.getElementsByTagName('si')].map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join(''))}
+let sheet='xl/worksheets/sheet1.xml';if(files['xl/workbook.xml']&&files['xl/_rels/workbook.xml.rels']){try{let wb=new DOMParser().parseFromString(xml('xl/workbook.xml'),'text/xml'), rel= new DOMParser().parseFromString(xml('xl/_rels/workbook.xml.rels'),'text/xml');let rid=wb.getElementsByTagName('sheet')[0]?.getAttribute('r:id');let target=[...rel.getElementsByTagName('Relationship')].find(x=>x.getAttribute('Id')===rid)?.getAttribute('Target');if(target)sheet=target.startsWith('/')?target.slice(1):'xl/'+target.replace(/^\.?\//,'')}catch(e){}}
+let doc=new DOMParser().parseFromString(xml(sheet),'text/xml');let arr=[];for(let row of [...doc.getElementsByTagName('row')]){let obj={};for(let c of [...row.children].filter(x=>x.tagName==='c')){let ref=c.getAttribute('r')||'',col=ref.match(/[A-Z]+/);if(!col)continue;let idx=0;for(let ch of col[0])idx=idx*26+ch.charCodeAt(0)-64;idx--;let v=c.getElementsByTagName('v')[0]?.textContent??'';if(c.getAttribute('t')==='s')v=shared[Number(v)]??'';else if(c.getAttribute('t')==='inlineStr')v=c.getElementsByTagName('t')[0]?.textContent??'';obj[idx]=v}arr.push(obj)}
+if(!arr.length)return[];let max=Math.max(...arr.map(r=>Math.max(-1,...Object.keys(r).map(Number))));let heads=Array.from({length:max+1},(_,i)=>arr[0][i]||'');return arr.slice(1).map(r=>Object.fromEntries(heads.map((h,i)=>[h,r[i]??''])))} )}
+async function unzipXlsx(buf){let u8=new Uint8Array(buf),dv=new DataView(buf),eocd=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break}}if(eocd<0)throw Error('Fail bukan XLSX yang sah.');let count=dv.getUint16(eocd+10,true),off=dv.getUint32(eocd+16,true),files={};for(let i=0;i<count;i++){if(dv.getUint32(off,true)!==0x02014b50)break;let method=dv.getUint16(off+10,true),cs=dv.getUint32(off+20,true),nl=dv.getUint16(off+28,true),el=dv.getUint16(off+30,true),cl=dv.getUint16(off+32,true),lo=dv.getUint32(off+42,true),name=new TextDecoder().decode(u8.slice(off+46,off+46+nl));let lnl=dv.getUint16(lo+26,true),lel=dv.getUint16(lo+28,true),start=lo+30+lnl+lel,dat=u8.slice(start,start+cs);if(!name.endsWith('/')){if(method===0)files[name]=dat;else if(method===8){if(!('DecompressionStream'in window))throw Error('Pelayar ini tidak menyokong pembacaan XLSX offline. Gunakan CSV.');let ds=new DecompressionStream('deflate-raw'),stream=new Blob([dat]).stream().pipeThrough(ds);files[name]=new Uint8Array(await new Response(stream).arrayBuffer())} }off+=46+nl+el+cl}return files}
+$('importBtn').addEventListener('click',async()=>{let f=$('file').files[0];if(!f){alert('Pilih fail Excel atau CSV dahulu.');return}try{$('importMsg').textContent='Sedang membaca fail…';let data;if(f.name.toLowerCase().endsWith('.csv'))data=parseCsv(await f.text());else if(f.name.toLowerCase().endsWith('.xlsx'))data=await parseXlsx(await f.arrayBuffer());else throw Error('Format .xls lama tidak disokong. Simpan sebagai .xlsx atau CSV dahulu.');rows=data.map(normalize).filter(r=>r.filename);if(!rows.length)throw Error('Tiada baris gambar ditemui. Semak tajuk lajur seperti Item Name dan Item value.');recalc();writeStore();$('importMsg').textContent=`Berjaya import ${rows.length} baris gambar daripada ${f.name}.`}catch(e){$('importMsg').textContent='Gagal import: '+e.message;alert('Gagal import: '+e.message)}});
+['nameA','markA','nameB','markB','shareA','shareB','status'].forEach(id=>$(id).addEventListener('change',()=>{recalc();writeStore()}));$('filter').addEventListener('change',renderDetails);
+document.querySelectorAll('[data-sort]').forEach(b=>b.addEventListener('click',()=>{sortBy=b.dataset.sort;document.querySelectorAll('[data-sort]').forEach(x=>x.classList.toggle('active',x===b));renderDetails()}));
+$('saveEvent').addEventListener('click',()=>{writeStore();alert('Event disimpan pada telefon ini.')});
+$('newEvent').addEventListener('click',()=>{if(rows.length&&!confirm('Mulakan event baharu? Pastikan event semasa sudah disimpan.'))return;writeStore();currentId='event_'+Date.now();rows=[];$('eventName').value='';$('eventDate').value=new Date().toISOString().slice(0,10);recalc();writeStore()});
+$('savedEvents').addEventListener('change',e=>{if(!e.target.value)return;writeStore();currentId=e.target.value;let ev=events[currentId];rows=ev.rows||[];$('eventName').value=ev.name||'';$('eventDate').value=ev.date||'';loadSettings(ev.settings||{});recalc()});
+$('savePayment').addEventListener('click',()=>{let n=$('payPhotographer').value;if(!n){alert('Import data dan pilih jurufoto dahulu.');return}payments[currentId]=payments[currentId]||{};payments[currentId][n]={status:$('payStatus').value,date:$('payDate').value,ref:$('payRef').value};writeStore();recalc();alert('Status pembayaran disimpan pada peranti ini.')});
+$('exportCsv').addEventListener('click',()=>{let d=window.detail||[];let out=[['Event',$('eventName').value],['Tarikh event',$('eventDate').value],[],['Tarikh','Jurufoto','Nama fail','Order ID','Status','Kasar diagih MYR','Yuran platform diagih MYR','Yuran transaksi dan penghantaran diagih MYR','Bersih diagih MYR','Peratus agihan','Anggaran bayaran MYR'],...d.map(r=>[r.date,r.photographer,r.filename,r.order,r.status,r.grossShare,r.phShare,r.txShare+r.shipShare,r.netShare,(r.rate*100).toFixed(2)+'%',r.payout])];let csv='\ufeff'+out.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8;'}),'photosale-'+slug($('eventName').value)+'.csv')});
+$('backup').addEventListener('click',()=>{writeStore();download(new Blob([JSON.stringify({events,payments,currentId},null,2)],{type:'application/json'}),'photosale-sandaran.json')});
+$('restore').addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!x.events)throw Error('Format sandaran tidak sah');if(!confirm('Pulihkan sandaran? Rekod tempatan dengan ID sama mungkin diganti.'))return;events={...events,...x.events};payments={...payments,...(x.payments||{})};currentId=x.currentId||Object.keys(events)[0]||'current';rows=events[currentId]?.rows||[];$('eventName').value=events[currentId]?.name||'';$('eventDate').value=events[currentId]?.date||'';loadSettings(events[currentId]?.settings||{});writeStore();recalc();alert('Sandaran dipulihkan.')}catch(err){alert('Gagal pulihkan sandaran: '+err.message)}e.target.value=''});
+function download(blob,name){let a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+function slug(s){return String(s||'event').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'event'}
+function online(){ $('online').textContent=navigator.onLine?'● Online (data setempat)':'● Offline';$('online').style.color=navigator.onLine?'#d4ffe7':'#ffe8aa'}
+window.addEventListener('online',online);window.addEventListener('offline',online);
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+$('eventDate').value=new Date().toISOString().slice(0,10);readStore();online();
+</script>
+</body></html>
